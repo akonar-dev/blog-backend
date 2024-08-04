@@ -13,7 +13,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 connectToDB()
   .then(() => {
     app.listen(PORT, () => {
@@ -23,8 +22,6 @@ connectToDB()
   .catch((err) => {
     console.error("Server not started", err.errorMessage);
   });
-
-
 
 app.post("/register", async (req, res) => {
   try {
@@ -64,6 +61,40 @@ app.post("/add-blog", async (req, res) => {
     res
       .status(201)
       .json({ success: true, message: "Blog created successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/update-blog/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    console.log(title, description);
+    const updateBlog = await Blog.findByIdAndUpdate(id, {
+      title: title,
+      description: description,
+    });
+    if (!updateBlog) {
+      return res.status(400).json({ message: "Blog not found" });
+    } else {
+      res.status(200).json({ message: "Blog updated successfully" });
+    }
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.delete("/delete-blog/:id", async function (req, res) {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    res
+      .status(200)
+      .send({ message: "User deleted successfully", deletedUser: deletedUser });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
