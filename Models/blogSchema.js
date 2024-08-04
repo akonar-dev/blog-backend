@@ -1,18 +1,22 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose')
 const { Schema } = mongoose;
 
 const blogSchema = new Schema(
   {
     title: {
-      type: "string",
+      type: String,
       required: true,
     },
     description: {
-      type: "string",
+      type: String,
       required: true,
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true }
 );
-
-export const Blog = mongoose.model('Blog', blogSchema);
+const Blog = mongoose.model("Blog", blogSchema);
+module.exports = Blog
