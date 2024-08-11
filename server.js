@@ -9,6 +9,7 @@ const Blog = require("./Models/blogSchema");
 let PORT = process.env.PORT || 3000;
 
 const app = express();
+const saltRounds = 10;
 
 app.use(cors());
 app.use(express.json());
@@ -26,12 +27,23 @@ connectToDB()
 app.post("/register", async (req, res) => {
   try {
     let { username, email, password } = req.body;
-    password = bcrypt.hashSync(password, 10);
-    const newUser = new User({ username, email, password });
-    const data = await newUser.save();
-    res
-      .status(201)
-      .json({ success: true, message: "User registered successfully" });
+    bcrypt
+      .hash(password, saltRounds)
+      .then(function (password) {
+        const newUser = new User({ username, email, password });
+        newUser.save();
+        res
+          .status(201)
+          .json({ success: true, message: "User registered successfully" });
+      })
+      .catch((error) => {
+        res
+          .status(500)
+          .json({
+            error: "There is some issue with hasing the password",
+            error,
+          });
+      });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -41,14 +53,13 @@ app.post("/login", async function (req, res) {
   try {
     const { email, password } = req.body;
     const user = await User.find({ email: email });
-    if (user[0].email === email) {
-      if (user[0].password === password) {
-        res.status(200).send({ message: "User logged in successfully" });
-      }
-    } else {
-      res.status(403).send({ message: "Invalid username or password" });
+    const match = await bcrypt.compare(password, user[0].password);
+    if (match) {
+      return res.status(200).send({ message: "User logged in successfully" });
     }
+    res.status(403).send({ message: "Invalid username or password" });
   } catch (error) {
+    console.log("caught error")
     res.status(500).send({ error: error.message });
   }
 });
