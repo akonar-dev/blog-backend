@@ -27,6 +27,10 @@ connectToDB()
 app.post("/register", async (req, res) => {
   try {
     let { username, email, password } = req.body;
+    const user = await User.findOne({email: email});
+    if(user) {
+      return res.status(403).json({ message :"User already exists" });
+    }
     bcrypt
       .hash(password, saltRounds)
       .then(function (password) {
@@ -55,7 +59,7 @@ app.post("/login", async function (req, res) {
     const user = await User.find({ email: email });
     const match = await bcrypt.compare(password, user[0].password);
     if (match) {
-      return res.status(200).send({ message: "User logged in successfully" });
+      return res.status(200).send({ message: "User logged in successfully" });// return jwt token here
     }
     res.status(403).send({ message: "Invalid username or password" });
   } catch (error) {
@@ -66,8 +70,8 @@ app.post("/login", async function (req, res) {
 
 app.post("/add-blog", async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const newBlog = new Blog({ title, description });
+    const { title, description, createdBy } = req.body;
+    const newBlog = new Blog({ title, description, createdBy});
     const data = await newBlog.save();
     res
       .status(201)
