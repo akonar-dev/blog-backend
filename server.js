@@ -41,8 +41,8 @@ app.post("/login", async function (req, res) {
   try {
     const { email, password } = req.body;
     const user = await User.find({ email: email });
-    if (user.email === email) {
-      if (user.password === password) {
+    if (user[0].email === email) {
+      if (user[0].password === password) {
         res.status(200).send({ message: "User logged in successfully" });
       }
     } else {
@@ -88,13 +88,13 @@ app.put("/update-blog/:id", async (req, res) => {
 app.delete("/delete-blog/:id", async function (req, res) {
   try {
     const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) {
-      return res.status(404).send({ message: "User not found" });
+    const deletedBlog = await Blog.findByIdAndDelete(id);
+    if (!deletedBlog) {
+      return res.status(404).send({ message: "Blog not found" });
     }
     res
       .status(200)
-      .send({ message: "User deleted successfully", deletedUser: deletedUser });
+      .send({ message: "Blog deleted successfully", deletedBlog: deletedBlog });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
